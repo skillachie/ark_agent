@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from ark_agent.celery import celery
-import ark_agent.load_data
+from ark_agent.load_data import LoadMongoDB
 from celery.result import ResultSet
 import sys
 sys.path.append('/Users/skillachie') 
@@ -28,10 +28,6 @@ fh.setFormatter(frmt)
 logger.addHandler(fh)
 
 
-#http://charting.nasdaq.com/ext/charts.dll?2-1-14-0-0-5999-03NA000000CSCO-&SF:4%7C5%7C8%7C27-SH:8=20%7C27=15-XTBL-
-#Symbol above is CSCO
-#TODO add logging for to check for symbols that are not tracked by Yahoo
-#TODO task that actually goes out gets data then save it back to mongoDB
 
 def get_symbol_set(symbols):
     symbol_set = Set()
@@ -65,6 +61,10 @@ def get_eod_data(symbol, start_date,end_date):
 
 @celery.task(ignore_result=True)
 def generate_eod_tasks():
+    """
+    Task responsible for generating work items used to obtain end of day 
+    data for stocks using get_eod_data() task
+    """
 
     symbol_sets = Set()
     symbol_sets.add('GOOG')
@@ -82,34 +82,25 @@ def generate_eod_tasks():
     #symbol_sets.update(get_symbol_set(nyse))
     #symbol_sets.update(get_symbol_set(nasdaq))
 
-    #TODO: dynamically get new start and end date here
-    #TODO: Always 
-
-    #TODO:Check Database to see if intial load was done before. If not use the starting days of the stock markte.
-    #TODO: If initial load is complete, get data from current date
-
-    #start_date = "1817-01-01"
-    start_date = "2013-01-01"
-    end_date = "2013-01-03"
+    load_mongo = LoadMongoDB()
     
     result_ids = []
     for symbol in symbol_sets:
-        #TODO get start_date here 
-    #    print "The symbol is ...%s " %(symbol)
-        #result_id = get_eod_data.subtask((symbol,start_date,end_date))
-        result_id = get_eod_data.apply_async((symbol,start_date,end_date))
+        #Obtain start and end dates from database
+        date_range = load_mongo.get_date_range(symbol) 
+        result_id = get_eod_data.apply_async((symbol,date_range['start_date'],date_range['end_date']))
         result_ids.append(result_id)
 
-    result_data = ResultSet(result_ids)
-    print "There are %s results completed \n" %(result_data.failed())
-    my_results = result_data.iterate()
-    for data in my_results:
-        print "The data returned is %s \n" %(data)
-        #TODO update database entry here
     
-    #TODO: Save last completed time to collection
+    result_data = ResultSet(result_ids)
+    my_results = result_data.iterate()
 
-    #TODO: consider removing items from set
-    #TODO:  When set is empty set the date as the last scanned
-    #TODO: Or have each symbol updates its scan time after successful completion
-    #TODO: return a list of result_ids. Then check those ID;s for success
+    #Iterate over all results
+    for data in my_results:
+        if(data['status'] == 'success'):
+            load_mongo.insert_to_db(data)
+            load_mongo.set_last_load_date(data['symbol'],data['status'],False)
+        elif(data['status'] == 'failed'):
+            load_mongo.set_last_load_date(data['symbol'],data['status'],True)
+
+    load_mongo.done()
