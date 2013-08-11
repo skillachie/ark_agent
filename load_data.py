@@ -1,12 +1,10 @@
 import pymongo
-import pprint
 import datetime
 
 class LoadData(object):
     """
     Base class for loading data to data store
-    """
-    
+    """ 
     def __init__(self):
         pass
 
@@ -14,16 +12,14 @@ class LoadData(object):
     def get_start_date():
         return '1817-01-01'
 
-
-    def get_date(self,date):
+    def get_date(self, date):
         """
         Converts date in format $year-$month-$day to datetime.datetime
         """
-        (year,month,day) = date.split('-')
-        return datetime.datetime(int(year),int(month),int(day),0,0)
+        (year, month, day) = date.split('-')
+        return datetime.datetime(int(year), int(month), int(day), 0, 0)
 
-
-    def insert_to_dstore(self,data):
+    def insert_to_dstore(self, data):
         """
         Creates dictonary structure to be used by datastore, to store data 
         """
@@ -48,13 +44,13 @@ class LoadData(object):
              
         return eod_data_set
 
-    def get_date_string(self,date):
+    def get_date_string(self, date):
         """
         Converts datetime object to date format required to obtain data
         """
         return "%d-%02d-%d" %(date.year,date.month,date.day)
 
-    def set_last_load_date_dstore(self,symbol,status,initial=True):
+    def set_last_load_date_dstore(self, symbol, status, initial=True):
         """
         Creates dictionary used to save the status of each symbol obtained
         """
@@ -89,7 +85,7 @@ class LoadMongoDB(LoadData):
         self.client = pymongo.MongoClient('localhost',27017)
         self.db = self.client['stocks'] 
 
-    def insert_to_db(self,data):
+    def insert_to_db(self, data):
         """
         Inserts data into mongoDB 
         """
@@ -101,12 +97,10 @@ class LoadMongoDB(LoadData):
                                     True )
         
     
-    def get_last_load_date(self,symbol):
+    def get_last_load_date(self, symbol):
         data_load = self.db['load_status']
         load_stats = data_load.find_one({'symbol':symbol})
        
-        pprint.pprint(load_stats)
-        
         if load_stats is None or load_stats['load_status']['initial'] is True:
             return self.get_start_date()
         elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'failed':
@@ -114,12 +108,12 @@ class LoadMongoDB(LoadData):
         elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'success':
             return load_stats['load_status']['last_run_date']
 
-    def set_last_load_date(self,symbol,status,initial):
+    def set_last_load_date(self, symbol, status, initial):
         load_data = self.set_last_load_date_dstore(symbol,status,initial)
         self.collection = self.db['load_status']
         self.collection.update({'symbol':load_data['symbol']},load_data,True)
     
-    def get_date_range(self,symbol):
+    def get_date_range(self, symbol):
         """
         Gets the start and end range to run job
         """

@@ -3,10 +3,9 @@ from ark_agent.celery import celery
 from ark_agent.load_data import LoadMongoDB
 from celery.result import ResultSet
 import sys
-sys.path.append('/Users/skillachie') 
 import ystockquote
 import pprint
-import finsymbols #TODO create module to be used in PyPi
+import finsymbols 
 from time import sleep
 from sets import Set
 import httplib
@@ -26,7 +25,6 @@ fh.setFormatter(frmt)
 
 # add the Handler to the logger
 logger.addHandler(fh)
-
 
 
 def get_symbol_set(symbols):
