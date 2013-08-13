@@ -1,5 +1,7 @@
 import pymongo
 import datetime
+import yaml
+import os 
 
 class LoadData(object):
     """
@@ -81,16 +83,22 @@ class LoadData(object):
 class LoadMongoDB(LoadData):
 
     def __init__(self):
-        #TODO read all variables  from  config file
-        self.client = pymongo.MongoClient('localhost',27017)
-        self.db = self.client['stocks'] 
+        #Settings from config file
+        self.module_path = os.path.dirname(os.path.realpath(__file__))
+        self.config_dir = os.path.join(self.module_path,'configs')
+        self.file_path = os.path.abspath(self.config_dir) + os.sep + 'mongo_settings.yaml'
+        self.config_file = open(self.file_path,'r')
+        self.config_data = yaml.load(self.config_file)
+        
+        self.client = pymongo.MongoClient(self.config_data['hostname'],self.config_data['port'])
+        self.db = self.client[self.config_data['historical_database']] 
 
     def insert_to_db(self, data):
         """
         Inserts data into mongoDB 
         """
         eod_data_set = self.insert_to_dstore(data)
-        self.collection = self.db['eod_data']
+        self.collection = self.db[self.config_data['stock_collection']]
         for eod_data in eod_data_set:
             self.collection.update({'symbol':eod_data['symbol'],'date':eod_data['date']},
                                     eod_data,
@@ -98,7 +106,7 @@ class LoadMongoDB(LoadData):
         
     
     def get_last_load_date(self, symbol):
-        data_load = self.db['load_status']
+        data_load = self.db[self.config_data['load_status_collection']]
         load_stats = data_load.find_one({'symbol':symbol})
        
         if load_stats is None or load_stats['load_status']['initial'] is True:
@@ -110,7 +118,7 @@ class LoadMongoDB(LoadData):
 
     def set_last_load_date(self, symbol, status, initial):
         load_data = self.set_last_load_date_dstore(symbol,status,initial)
-        self.collection = self.db['load_status']
+        self.collection = self.db[self.config_data['load_status_collection']]
         self.collection.update({'symbol':load_data['symbol']},load_data,True)
     
     def get_date_range(self, symbol):
