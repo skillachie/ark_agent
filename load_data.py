@@ -112,15 +112,20 @@ class LoadMongoDB(LoadData):
         if load_stats is None or load_stats['load_status']['initial'] is True:
             return self.get_start_date()
         elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'failed':
-            return self.get_start_date()
+            return self.get_start_date() 
         elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'success':
             return load_stats['load_status']['last_run_date']
 
     def set_last_load_date(self, symbol, status, initial):
         load_data = self.set_last_load_date_dstore(symbol,status,initial)
         self.collection = self.db[self.config_data['load_status_collection']]
-        self.collection.update({'symbol':load_data['symbol']},load_data,True)
-    
+        if(status == 'success'):
+            self.collection.update({'symbol':load_data['symbol']},load_data,False)
+        else:
+            self.collection.update({'symbol':load_data['symbol']},load_data,True)
+            
+
+
     def get_date_range(self, symbol):
         """
         Gets the start and end range to run job
