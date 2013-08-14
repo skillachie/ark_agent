@@ -61,7 +61,8 @@ class LoadData(object):
                      'load_status':{
                                     'initial':initial,
                                     'last_run_date':self.get_current_date(),
-                                    'last_run_status': status
+                                    'last_run_status': status,
+                                    'last_run_success_date': None
                                    }
                     }
         return last_load
@@ -111,19 +112,24 @@ class LoadMongoDB(LoadData):
        
         if load_stats is None or load_stats['load_status']['initial'] is True:
             return self.get_start_date()
-        elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'failed':
-            return self.get_start_date() 
+        elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'failed' and load_stats['load_status']['last_run_success_date'] is not None:
+            return load_stats['load_status']['last_run_success_date'] 
+        elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'failed' and load_stats['load_status']['last_run_success_date'] is None:
+            return self.get_start_date()
         elif load_stats['load_status']['initial'] is False and load_stats['load_status']['last_run_status'] == 'success':
             return load_stats['load_status']['last_run_date']
 
-    def set_last_load_date(self, symbol, status, initial):
-        load_data = self.set_last_load_date_dstore(symbol,status,initial)
+    def set_last_load_date(self, symbol, status):
+        load_data = self.set_last_load_date_dstore(symbol,status)
         self.collection = self.db[self.config_data['load_status_collection']]
-        if(status == 'success'):
-            self.collection.update({'symbol':load_data['symbol']},load_data,False)
-        else:
+        if (status == 'success'):
+            load_data['load_status']['last_run_success_date'] = self.get_current_date()
+            load_data['load_status']['initial'] = False
             self.collection.update({'symbol':load_data['symbol']},load_data,True)
-            
+        else:
+            load_data['load_status']['initial'] = False
+            load_data['load_status']['last_run_success_date'] = self.get_last_load_date(symbol)
+            self.collection.update({'symbol':load_data['symbol']},load_data,True)
 
 
     def get_date_range(self, symbol):
