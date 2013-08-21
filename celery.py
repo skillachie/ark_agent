@@ -20,7 +20,7 @@ celery = Celery('ark_agent.celery',
 
 #Loads settings for Backend to store results of jobs
 celery.conf.update(CELERYBEAT_SCHEDULE = {
-                        'every-day-at-six': {
+                        'every-day-at-five': {
                         'task': 'ark_agent.stock_eod_data.generate_eod_tasks',
                         'schedule': crontab(minute=0, hour=17),
                                         },
