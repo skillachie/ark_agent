@@ -9,7 +9,7 @@ class QuantLogger(object):
         
         log_file = '/tmp/'+ log_name + '.log'
 
-        fh =  logging.handlers.RotatingFileHandler(log_file, maxBytes=2242880, backupCount=7)
+        fh =  logging.handlers.RotatingFileHandler(log_file, maxBytes=9242880, backupCount=7)
         fh.setLevel(logging.INFO)
 
         # set format of logger

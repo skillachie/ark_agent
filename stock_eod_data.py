@@ -12,7 +12,6 @@ from sets import Set
 import httplib
 import urllib2
 
-
 def get_symbol_set(symbols):
     symbol_set = Set()
     for symbol in symbols:
@@ -24,7 +23,6 @@ def get_symbol_set(symbols):
 def get_eod_data(symbol, start_date,end_date):
 
     #TODO consider retring task for 2 times   
-    
     logger = QuantLogger.get_logger(__name__)
     logger.info("Obtaining %s from %s to %s" %(symbol,start_date,end_date))
     
@@ -50,20 +48,18 @@ def generate_eod_tasks():
     """
 
     symbol_sets = Set()
-    symbol_sets.add('GOOG')
-    symbol_sets.add('MPG')
-    symbol_sets.add('LAND')
+    
     #Gets all symbols
     sp500 = finsymbols.get_sp500_symbols()
-    #amex = finsymbols.get_amex_symbols()
-    #nyse = finsymbols.get_nyse_symbols()
-    #nasdaq = finsymbols.get_nasdaq_symbols()
+    amex = finsymbols.get_amex_symbols()
+    nyse = finsymbols.get_nyse_symbols()
+    nasdaq = finsymbols.get_nasdaq_symbols()
     
     #Adds all symbols to set which removes duplicates
-    #symbol_sets.update(get_symbol_set(sp500))
-    #symbol_sets.update(get_symbol_set(amex))
-    #symbol_sets.update(get_symbol_set(nyse))
-    #symbol_sets.update(get_symbol_set(nasdaq))
+    symbol_sets.update(get_symbol_set(sp500))
+    symbol_sets.update(get_symbol_set(amex))
+    symbol_sets.update(get_symbol_set(nyse))
+    symbol_sets.update(get_symbol_set(nasdaq))
 
     load_mongo = LoadMongoDB()
     
