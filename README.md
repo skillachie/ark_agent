@@ -1,4 +1,7 @@
-ark_agent
-=========
+Ark Agent
+===========
 
-Distributed Agent Based On Celery Used To Collect End Of Day Stock Data 
+Distributed Agent Used To Collect Current and Historical End Of Day Stock Data. Full documentation and usage at  http://skillachie.github.io/ark_agent/
+
+----
+
