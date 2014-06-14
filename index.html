@@ -1,0 +1,193 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Ark Agent by skillachie</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Ark Agent</h1>
+        <p>Distributed Agent  Used To Collect Current  and Historical  End Of Day Stock Data </p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/skillachie/ark_agent" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/skillachie/ark_agent/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/skillachie/ark_agent/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>
+<a name="ark-agent" class="anchor" href="#ark-agent"><span class="octicon octicon-link"></span></a>Ark Agent</h1>
+
+<p>An application that leverages <a href="http://www.celeryproject.org/">Celery</a> and <a href="http://www.mongodb.org/">MongoDB</a> to provide end of day and historical market data for stocks. </p>
+
+<hr><h2>
+<a name="use-cases" class="anchor" href="#use-cases"><span class="octicon octicon-link"></span></a>Use Cases</h2>
+
+<p><strong>Ark Agent</strong> can be used for any one of the following and much more:. </p>
+
+<ul>
+<li>Market Analytics</li>
+<li>Indicator Development</li>
+<li>Strategy Development and Backtesting</li>
+<li>More ....</li>
+</ul><hr><h2>
+<a name="functionality" class="anchor" href="#functionality"><span class="octicon octicon-link"></span></a>Functionality</h2>
+
+<p><strong>Ark Agent</strong> automatically obtains and stores historical market data using Yahoo as the main source . </p>
+
+<ul>
+<li>Retroactively obtains and seeds the database with historical data for all enabled symbols</li>
+<li>Configurable schedule that runs automatically to obtain end of day data. Currently configured for 7:00 PM EST</li>
+<li>Tracks the status of obtaining each symbol and will obtain data from the date of last failure.</li>
+</ul><blockquote>
+<ul>
+<li>Obtains current and historical data for the entire <strong>S&amp;P 500</strong> in under <strong>15 minutes</strong>.</li>
+</ul>
+</blockquote>
+
+<hr><h2>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
+
+<p><strong>Ark Agent</strong> has requires minor configuration to get started</p>
+
+<blockquote>
+<p><strong>NOTE:</strong></p>
+
+<ul>
+<li>Ensure <strong>mongo</strong> is in your path or update scripts</li>
+<li>Setup additional indices depending on how you query the data</li>
+</ul>
+</blockquote>
+
+<h4>
+<a name="1-download-and-configure-mongodb" class="anchor" href="#1-download-and-configure-mongodb"><span class="octicon octicon-link"></span></a>1. Download and Configure MongoDB</h4>
+
+<p>Using MongoDB's nice documentation <a href="http://docs.mongodb.org/manual/installation/">MongoDB</a></p>
+
+<h4>
+<a name="2-install-python-dependencies" class="anchor" href="#2-install-python-dependencies"><span class="octicon octicon-link"></span></a>2. Install Python dependencies</h4>
+
+<pre><code>pip install celery pymongo ystockquote finsymbols pyyaml
+</code></pre>
+
+<h4>
+<a name="3-start-mongodb-and-worker" class="anchor" href="#3-start-mongodb-and-worker"><span class="octicon octicon-link"></span></a>3. Start MongoDB and Worker</h4>
+
+<ol>
+<li>Start MongoDB </li>
+<li>Run script to configure indices <code>./setup_mongo_indices.sh</code>
+</li>
+</ol><h4>
+<a name="4-start-workers" class="anchor" href="#4-start-workers"><span class="octicon octicon-link"></span></a>4. Start Worker(s)</h4>
+
+<p>Celery will automatically select the number of workers to be created. Usually 1 worker per core is created.</p>
+
+<pre><code>celery worker --app ark_agent -l info -E -B
+</code></pre>
+
+<h4>
+<a name="4-sit-back--relax-and-collect-end-of-day-data" class="anchor" href="#4-sit-back--relax-and-collect-end-of-day-data"><span class="octicon octicon-link"></span></a>4. Sit back , relax and collect end of day data</h4>
+
+<hr><h2>
+<a name="document-structure" class="anchor" href="#document-structure"><span class="octicon octicon-link"></span></a>Document Structure</h2>
+
+<h3>
+<a name="eod_data-collection" class="anchor" href="#eod_data-collection"><span class="octicon octicon-link"></span></a>eod_data collection</h3>
+
+<pre><code>MongoDB shell version: 2.6.0
+connecting to: test
+&gt; use stocks
+switched to db stocks
+&gt; db.eod_data.find({symbol:'GOOG'}).pretty()
+{
+    "_id" : ObjectId("539c776b3973b0db2be18265"),
+    "price_data" : {
+        "Volume" : 1900300,
+        "High" : 532.93,
+        "AdjClose" : 531.35,
+        "Low" : 523.88,
+        "Close" : 531.35,
+        "Open" : 527.11
+    },
+    "date" : ISODate("2014-05-01T00:00:00Z"),
+    "symbol" : "GOOG"
+}
+{
+    "_id" : ObjectId("539c776b3973b0db2be18266"),
+    "price_data" : {
+        "Volume" : 1348000,
+        "High" : 563.6,
+        "AdjClose" : 560.55,
+        "Low" : 557.9,
+        "Close" : 560.55,
+        "Open" : 560.51
+    },
+    "date" : ISODate("2014-06-10T00:00:00Z"),
+    "symbol" : "GOOG"
+}
+</code></pre>
+
+<h3>
+<a name="load_status-collection" class="anchor" href="#load_status-collection"><span class="octicon octicon-link"></span></a>load_status collection</h3>
+
+<pre><code>Type "it" for more
+&gt; db.load_status.find({symbol:'GOOG'}).pretty()
+{
+    "_id" : ObjectId("539c776b3973b0db2be18264"),
+    "symbol" : "GOOG",
+    "load_status" : {
+        "last_run_success_date" : "2014-06-14",
+        "last_run_status" : "success",
+        "initial" : false,
+        "last_run_date" : "2014-06-14"
+    }
+}
+</code></pre>
+
+<hr><h2>
+<a name="architecture" class="anchor" href="#architecture"><span class="octicon octicon-link"></span></a>Architecture</h2>
+
+<p>By default <strong>Ark Agent</strong> uses <strong>MongoDB</strong> as both the messaging system and the datastore. Ideally you would like to seperate these functionality and possibly use a broker like <strong>RabbitMQ</strong> to seperate the data collection and cleaning components from the datababase. <strong>Ark Agent</strong> can be easily modified to do the above. The current setup was chosen to allow for others to quickly get started.</p>
+
+<p>Base Architecture</p>
+
+<p><img src="https://github.com/skillachie/ark_agent/raw/master/images/architecture1.png" alt=""></p>
+
+<hr><h2>
+<a name="issueshelp" class="anchor" href="#issueshelp"><span class="octicon octicon-link"></span></a>Issues/Help</h2>
+
+<p>Feel free to open a pull request or send me an email <a href="mailto:dwaynecampbell13@gmail.com">dwaynecampbell13@gmail.com</a></p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/skillachie">skillachie</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
