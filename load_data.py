@@ -128,7 +128,6 @@ class LoadMongoDB(LoadData):
             self.collection.update({'symbol':load_data['symbol']},load_data,True)
         else:
             load_data['load_status']['initial'] = False
-            load_data['load_status']['last_run_success_date'] = self.get_last_load_date(symbol)
             self.collection.update({'symbol':load_data['symbol']},load_data,True)
 
 

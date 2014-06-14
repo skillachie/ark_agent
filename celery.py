@@ -12,20 +12,22 @@ config_data = yaml.load(config_file)
 
 BROKER_URL = "mongodb://%s:%d/jobs" %(config_data['hostname'],config_data['port'])
 
+#Loads settings for Backend to store results of jobs
 celery = Celery('ark_agent.celery',
 		broker=BROKER_URL,
 		backend=BROKER_URL,
 		include=['ark_agent.stock_eod_data'])  #list of modules to import when Celery starts
 
 
-#Loads settings for Backend to store results of jobs
+#Schedule Config
 celery.conf.update(CELERYBEAT_SCHEDULE = {
-                        'every-day-at-five': {
+                        'every-day-at-seven': {
                         'task': 'ark_agent.stock_eod_data.generate_eod_tasks',
-                        'schedule': crontab(minute=0, hour=17),
+                        'schedule': crontab(minute=00, hour=19),
                                         },
                     },
                     CELERY_TIMEZONE = 'US/Eastern',
+                    CELERY_ACCEPT_CONTENT = ['pickle', 'json']
                     )
 
 if __name__ == '__main__':
