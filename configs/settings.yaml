@@ -1,0 +1,7 @@
+mongodb:
+ host: "localhost"
+ port: 27017
+ eod_db: "stocks"
+ stock_collection: "eod_data"
+ load_status_collection: "load_status"
+
