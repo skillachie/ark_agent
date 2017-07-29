@@ -1,4 +1,7 @@
-finsymbols>==1
+finsymbols>=1
 bson==0.4
 pyyaml==3.12
 pymongo==3.4.0
+Celery==4.0.2
+#ystockquote==0.2.5 Does not have fixes for new endpoint
+git+git://github.com/skillachie/ystockquote

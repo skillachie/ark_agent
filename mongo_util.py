@@ -2,11 +2,12 @@ import os
 import sys
 import yaml
 import pymongo
+from sets import Set
 
 class MongoDBUtil(object):
 
     def __init__(self):
-       
+
         self.file_dir = os.path.dirname(os.path.realpath(__file__))
         self.config_dir = os.path.join(self.file_dir,os.path.join( 'configs' ))
         self.conf_file_path = os.path.abspath(self.config_dir) + os.sep + 'settings.yaml'
@@ -17,16 +18,20 @@ class MongoDBUtil(object):
 
 
     def _create_indices(self):
-
+        #TODO revise
         # Symbols should be unique and only occur once
-        self.db['symbols'].create_index("symbol",unique=True)
+        self.db['symbols'].create_index("symbol",unique=True) #No longer required
 
-    def has_symbols_loaded(self):
+    def has_historical_data(self,symbols):
         self.symbols_collection = self.db['symbols']
-        if self.symbols_collection.count() < 1:
-            return False
+        hist_sym = Set()
 
-        return True
+        for symbol in symbols:
+            sym_data = self.symbols_collection.find({'symbol':symbol})
+            if (sym_data.count() <= 1):
+                hist_sym.add(symbol)  
+
+        return hist_sym
 
 
     def load_symbols(self,symbols):
