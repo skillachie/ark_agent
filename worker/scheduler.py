@@ -24,8 +24,8 @@ app = Celery('ark_agent.scheduler',
 app.conf.update(CELERYBEAT_SCHEDULE = {
                         'every-day-at-seven': {
                         'task': 'eod_data_tasks.generate_eod_tasks',
-                        #'schedule': crontab(minute=00, hour=19),
-                        'schedule': 120.0,
+                        'schedule': crontab(minute=00, hour=19, 
+                                           day_of_week='mon,tue,wed,thu,fri'),
                                         },
                     },
                     CELERY_TIMEZONE = 'US/Eastern',

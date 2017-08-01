@@ -17,38 +17,8 @@ config_dir = os.path.join(file_path,os.path.join( '..' + os.sep +  'configs' ))
 conf_file_path = os.path.abspath(config_dir) + os.sep + 'settings.yaml'
 config_file = open(conf_file_path,'r')
 config_data = yaml.load(config_file)
-
-#from celery.schedules import crontab
-#from celery import Celery
-
-#BROKER_URL = "mongodb://%s:%d/jobs" %(config_data['mongodb']['host'],config_data['mongodb']['port'])
-
-#Loads settings for Backend to store results of jobs
-#celery = Celery('ark_agent.celery',
-#        broker=BROKER_URL,
-#        backend=BROKER_URL,
-#        include=['ark_agent.stock_eod_data'])  #list of modules to import when Celery starts
-
-
-#Schedule Config
-#celery.conf.update(CELERYBEAT_SCHEDULE = {
-#                        'every-day-at-seven': {
-#                        'task': 'ark_agent.stock_eod_data.generate_eod_tasks',
-#                        'schedule': crontab(minute=00, hour=19),
-#                                        },
-#                    },
-#                    CELERY_TIMEZONE = 'US/Eastern',
-#                    CELERY_ACCEPT_CONTENT = ['pickle', 'json']
-#                    )
-
-##
-
-#TODO create a task that runs only once and load symbols
-
-#from ark_agent.celery import celery
-#from ark_agent.load_data import LoadMongoDB
 from mongo_util import MongoDBUtil
-db = MongoDBUtil()
+
 
 from celery import Task
 from celery import group
@@ -71,13 +41,14 @@ logger.addHandler(handler)
 
 class MongoLoadTask(Task):
   abstract = True
-  db = MongoDBUtil()
+ 
 
   def after_return(self, status, result, task_id, args, kwargs, einfo):
 
     if(result['status'] == 'success'):
+        db = MongoDBUtil()
         logger.info('Inserting data into database {0}'.format(result['symbol'],))
-        #load_mongo.insert_to_db(result)
+        db.insert_to_db(result)
 
     if(result['status'] == 'failed'):
        logger.error('Failed to obtain data for {0} retrying after 30 minutes'.format(result['symbol'],))
@@ -88,7 +59,7 @@ class MongoLoadTask(Task):
 @app.task(base=MongoLoadTask)
 def get_eod_data(symbol,start_date,end_date):
     '''
-    Task used to obtain end of day data for the current date
+    Task used to obtain end of day data
     '''
 
     try:
@@ -107,12 +78,12 @@ def get_eod_data(symbol,start_date,end_date):
 
 
 
-
 def _get_symbol_set(symbols):
   symbol_set = Set()
   for symbol in symbols:
     symbol_set.add(symbol['symbol'])
   return symbol_set
+
 
 
 @app.task(gnore_result=True)
@@ -121,7 +92,7 @@ def generate_eod_tasks():
     Task responsible for generating work items used to obtain end of day
     data for stocks using get_eod_data() task
     '''
-
+    db = MongoDBUtil()
     symbol_sets = Set()
 
     #Gets all symbols

@@ -1,7 +1,2 @@
-mongodb:
- host: "localhost"
- port: 27017
- eod_db: "stocks"
- stock_collection: "eod_data"
- load_status_collection: "load_status"
-
+mongodb: {eod_db: stocks, host: localhost, indices_created: false, load_status_collection: load_status,
+  port: 27017, stock_collection: eod_data}

@@ -1,6 +1,0 @@
-hostname: "localhost"
-port: 27017
-historical_database: "stocks"
-stock_collection: "eod_data"
-load_status_collection: "load_status"
-
