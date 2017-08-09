@@ -2,7 +2,12 @@ import os
 import sys
 import yaml
 import pymongo
-from sets import Set
+
+try:
+    set
+except NameError:
+    from sets import Set as set
+
 import datetime
 
 class MongoDBUtil(object):
@@ -37,7 +42,7 @@ class MongoDBUtil(object):
 
     def has_historical_data(self,symbols):
         self.symbols_collection = self.db['symbols']
-        hist_sym = Set()
+        hist_sym = set()
 
         for symbol in symbols:
             sym_data = self.symbols_collection.find({'symbol':symbol})

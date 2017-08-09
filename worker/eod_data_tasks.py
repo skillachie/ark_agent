@@ -1,8 +1,12 @@
 import os
 import sys
 import finsymbols
-from sets import Set
 import datetime
+
+try:
+    set
+except NameError:
+    from sets import Set as set
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 libs_path = os.path.join(file_path,os.path.join('..' + os.sep  ))
@@ -24,9 +28,7 @@ from celery import Task
 from celery import group
 import sys
 import ystockquote
-#import httplib # Python2
-#import http.client as httplib
-import urllib2 # Fix for py2 and py3
+import urllib
 from celery.utils.log import get_task_logger
 import logging 
 
@@ -66,10 +68,10 @@ def get_eod_data(symbol,start_date,end_date):
         price_data = ystockquote.get_historical_prices(symbol,start_date,end_date)
         logger.info('Obtained data for {0} from {1} to {2}'.format(symbol,start_date,end_date))
         return {'symbol':symbol,'data': price_data,'status':'success'}
-    except urllib2.HTTPError as exc:
+    except urllib.error.HTTPError as exc:
         logger.error({'status':'failed','symbol':symbol,'msg':str(exc),'exception':'HTTPError'})
         return {'status':'failed','symbol':symbol,'msg':str(exc)}
-    except urllib2.URLError as exc:
+    except urllib.error.URLError as exc:
         logger.error({'status':'failed','symbol':symbol,'msg':str(exc),'exception':'URLError'})
         return {'status':'failed','symbol':symbol,'msg':str(exc)}
     except Exception as exc:
@@ -79,7 +81,7 @@ def get_eod_data(symbol,start_date,end_date):
 
 
 def _get_symbol_set(symbols):
-  symbol_set = Set()
+  symbol_set = set()
   for symbol in symbols:
     symbol_set.add(symbol['symbol'])
   return symbol_set
@@ -93,7 +95,7 @@ def generate_eod_tasks():
     data for stocks using get_eod_data() task
     '''
     db = MongoDBUtil()
-    symbol_sets = Set()
+    symbol_sets = set()
 
     #Gets all symbols
     sp500 = finsymbols.get_sp500_symbols()
